@@ -2,9 +2,9 @@ name: Build and Package Snake
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build-linux:
@@ -23,13 +23,15 @@ jobs:
         mkdir -p pkg/DEBIAN
         mkdir -p pkg/usr/local/bin
         cp snake pkg/usr/local/bin/
-        echo "Package: snake
+        cat > pkg/DEBIAN/control <<EOF
+Package: snake
 Version: 1.0
 Section: games
 Priority: optional
 Architecture: amd64
 Maintainer: Kiril207 <kirya.sherstyuk.05@mail.ru>
-Description: Snake game" > pkg/DEBIAN/control
+Description: Snake game
+EOF
         dpkg-deb --build pkg snake_1.0_amd64.deb
     - uses: actions/upload-artifact@v4
       with:
