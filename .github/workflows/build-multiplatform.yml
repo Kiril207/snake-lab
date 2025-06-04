@@ -32,6 +32,7 @@ Architecture: amd64
 Maintainer: Kiril207 <kirya.sherstyuk.05@mail.ru>
 Description: Simple snake game packaged for lab
 CONTROL
+
           dpkg-deb --build pkg snake-game.deb
       - uses: actions/upload-artifact@v4
         with:
