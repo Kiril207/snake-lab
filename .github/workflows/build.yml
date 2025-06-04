@@ -65,6 +65,11 @@ jobs:
           cp build/snake-game package/usr/local/bin/
           dpkg-deb --build package snake-game.deb
 
+      - name: Move DEB to release
+        run: |
+          mkdir -p release
+          mv snake-game.deb release/
+
   build-windows:
     runs-on: windows-latest
 
@@ -82,32 +87,26 @@ jobs:
           choco install mingw
           choco install cmake
 
-      - name: Configure CMake
+      - name: Reconfigure CMake for Windows
         run: |
           mkdir build
           cd build
-          cmake .. -G "MinGW Makefiles"
+          cmake -G "Visual Studio 16 2019" -A x64 ..
 
-      - name: Build
+      - name: Build with MSBuild
         run: |
           cd build
           cmake --build . --config Release
 
-      - name: Create MSI package
-        run: |
-          choco install -y wix
-          candle.exe -dSourceDir=build -o snake-game.wixobj snake-game.wxs
-          light.exe -out snake-game.msi snake-game.wixobj
-
       - name: Verify MSI Output
         run: |
-          if [ ! -f build/snake-game.msi ]; then
-            echo "Error: MSI file not found!"
+          if (!(Test-Path -Path build\snake-game.msi)) {
+            Write-Error "MSI file not found!"
             exit 1
-          fi
+          }
 
-      - name: Fix Upload Artifact
-        uses: actions/upload-artifact@v2
+      - name: Upload MSI
+        uses: actions/upload-artifact@v3
         with:
           name: snake-game-windows
           path: build/*.msi
@@ -120,7 +119,7 @@ jobs:
           powershell Compress-Archive -Path package/* -DestinationPath snake-game.zip
 
       - name: Upload ZIP
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: snake-game-windows-zip
           path: build/snake-game.zip
