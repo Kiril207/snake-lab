@@ -1,0 +1,65 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - created
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v1
+        with:
+          cmake-version: '3.21.2'
+
+      - name: Install dependencies
+        run: |
+          choco install mingw
+          choco install cmake
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "MinGW Makefiles"
+
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Verify WiX Source File
+        run: |
+          if (!(Test-Path -Path snake-game.wxs)) {
+            Write-Error "WiX source file not found!"
+            exit 1
+          }
+
+      - name: Create MSI package
+        run: |
+          choco install -y wix
+          candle.exe -dSourceDir=build -o snake-game.wixobj snake-game.wxs
+          light.exe -out snake-game.msi snake-game.wixobj
+
+      - name: Save MSI to release
+        run: |
+          mkdir -p release
+          cp build/*.msi release/
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v2
+        with:
+          name: snake-game-windows
+          path: release/*.msi
