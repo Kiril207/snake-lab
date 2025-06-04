@@ -25,6 +25,11 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y cmake g++ 
 
+      - name: Install SFML
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsfml-dev
+
       - name: Build with CMake
         run: |
           mkdir build

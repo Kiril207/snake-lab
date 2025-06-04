@@ -17,3 +17,8 @@ include_directories("04 Snake")
 
 # Add images directory
 file(COPY "04 Snake/images" DESTINATION "${CMAKE_BINARY_DIR}")
+
+find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
+
+# Link SFML libraries
+target_link_libraries(SnakeGame sfml-graphics sfml-window sfml-system)
