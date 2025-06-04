@@ -17,19 +17,19 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang make dpkg-dev
       - name: Build
         run: |
-          cd 04-Snake/04\ Snake
+          cd "04-Snake/04 Snake"
           clang -o snake snake.c
       - name: Package deb
         run: |
           mkdir -p pkg/DEBIAN pkg/usr/local/bin
-          cp 04-Snake/04\ Snake/snake pkg/usr/local/bin/snake
+          cp "04-Snake/04 Snake/snake" pkg/usr/local/bin/snake
           cat > pkg/DEBIAN/control <<CONTROL
 Package: snake-game
 Version: 1.0
 Section: games
 Priority: optional
 Architecture: amd64
-Maintainer: Your Name <youremail@example.com>
+Maintainer: Kiril207 <kirya.sherstyuk.05@mail.ru>
 Description: Simple snake game packaged for lab
 CONTROL
           dpkg-deb --build pkg snake-game.deb
@@ -48,15 +48,15 @@ CONTROL
         run: choco install llvm -y
       - name: Build
         run: |
-          cd 04-Snake/04 Snake
+          cd '04-Snake/04 Snake'
           clang -o snake.exe snake.c
       - name: Package msi (WiX)
         run: |
           choco install wixtoolset -y
-          cd 04-Snake/04 Snake
+          cd '04-Snake/04 Snake'
           echo ^<?xml version="1.0" encoding="UTF-8"?^> > snake.wxs
           echo ^<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"^> >> snake.wxs
-          echo   ^<Product Id="*" Name="SnakeGame" Language="1033" Version="1.0.0.0" Manufacturer="Your Name" UpgradeCode="PUT-GUID-HERE"^> >> snake.wxs
+          echo   ^<Product Id="*" Name="SnakeGame" Language="1033" Version="1.0.0.0" Manufacturer="Kiril207" UpgradeCode="PUT-GUID-HERE"^> >> snake.wxs
           echo     ^<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" /^> >> snake.wxs
           echo     ^<Directory Id="TARGETDIR" Name="SourceDir"^> >> snake.wxs
           echo       ^<Directory Id="ProgramFilesFolder"^> >> snake.wxs
@@ -77,7 +77,7 @@ CONTROL
       - uses: actions/upload-artifact@v4
         with:
           name: msi-package
-          path: 04-Snake/04 Snake/snake.msi
+          path: '04-Snake/04 Snake/snake.msi'
 
   build-macos:
     runs-on: macos-latest
@@ -89,9 +89,9 @@ CONTROL
         run: brew install llvm make
       - name: Build
         run: |
-          cd 04-Snake/04\ Snake
+          cd "04-Snake/04 Snake"
           clang -o snake snake.c
       - uses: actions/upload-artifact@v4
         with:
           name: macos-binary
-          path: 04-Snake/04 Snake/snake
+          path: "04-Snake/04 Snake/snake"
