@@ -1,12 +1,6 @@
 name: Build Windows
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   release:
     types:
       - created
@@ -19,33 +13,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up CMake
-        uses: jwlawson/actions-setup-cmake@v1
-        with:
-          cmake-version: '3.21.2'
-
       - name: Install dependencies
         run: |
           choco install mingw
           choco install cmake
+          choco install sfml
 
       - name: Configure CMake
         run: |
           mkdir build
           cd build
-          cmake .. -G "MinGW Makefiles"
+          cmake -G "MinGW Makefiles" -DCMAKE_PREFIX_PATH="C:\SFML" ..
 
       - name: Build
         run: |
           cd build
           cmake --build . --config Release
-
-      - name: Verify WiX Source File
-        run: |
-          if (!(Test-Path -Path snake-game.wxs)) {
-            Write-Error "WiX source file not found!"
-            exit 1
-          }
 
       - name: Create MSI package
         run: |
@@ -57,15 +40,3 @@ jobs:
         run: |
           mkdir -p release
           cp build/*.msi release/
-
-      - name: Cache MSI
-        uses: actions/cache@v3
-        with:
-          path: release/*.msi
-          key: ${{ runner.os }}-snake-game-msi
-
-      - name: Cache ZIP
-        uses: actions/cache@v3
-        with:
-          path: release/snake-game.zip
-          key: ${{ runner.os }}-snake-game-zip
