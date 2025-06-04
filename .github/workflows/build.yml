@@ -1,0 +1,82 @@
+name: Build and Package Snake
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: sudo apt update && sudo apt install -y clang make libsdl2-dev dpkg-dev fakeroot
+    - name: Build
+      run: |
+        cd Snake
+        make CC=clang
+        mv snake ../snake
+    - name: Create .deb package
+      run: |
+        mkdir -p pkg/DEBIAN
+        mkdir -p pkg/usr/local/bin
+        cp snake pkg/usr/local/bin/
+        echo "Package: snake
+Version: 1.0
+Section: games
+Priority: optional
+Architecture: amd64
+Maintainer: Kiril207 <kirya.sherstyuk.05@mail.ru>
+Description: Snake game" > pkg/DEBIAN/control
+        dpkg-deb --build pkg snake_1.0_amd64.deb
+    - uses: actions/upload-artifact@v4
+      with:
+        name: deb-package
+        path: snake_1.0_amd64.deb
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        install: >-
+          mingw-w64-x86_64-clang
+          mingw-w64-x86_64-make
+          mingw-w64-x86_64-SDL2
+          wix
+    - name: Build
+      shell: msys2 {0}
+      run: |
+        cd Snake
+        make CC=clang.exe
+        cp snake.exe ../snake.exe
+    - name: Create MSI installer
+      shell: msys2 {0}
+      run: |
+        echo '<?xml version="1.0" encoding="UTF-8"?><Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+          <Product Id="*" Name="Snake" Language="1033" Version="1.0.0.0" Manufacturer="Kiril207" UpgradeCode="PUT-GUID-HERE">
+            <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+            <Directory Id="TARGETDIR" Name="SourceDir">
+              <Directory Id="ProgramFilesFolder">
+                <Directory Id="INSTALLFOLDER" Name="Snake">
+                  <Component Id="MainExecutable" Guid="PUT-GUID-HERE">
+                    <File Source="snake.exe" />
+                  </Component>
+                </Directory>
+              </Directory>
+            </Directory>
+            <Feature Id="DefaultFeature" Level="1">
+              <ComponentRef Id="MainExecutable" />
+            </Feature>
+          </Product>
+        </Wix>' > snake.wxs
+        candle.exe snake.wxs
+        light.exe snake.wixobj -o snake.msi
+    - uses: actions/upload-artifact@v4
+      with:
+        name: msi-package
+        path: snake.msi
