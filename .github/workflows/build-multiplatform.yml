@@ -1,0 +1,97 @@
+name: Build and Package Snake Game (multi-platform)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang make dpkg-dev
+      - name: Build
+        run: |
+          cd 04-Snake/04\ Snake
+          clang -o snake snake.c
+      - name: Package deb
+        run: |
+          mkdir -p pkg/DEBIAN pkg/usr/local/bin
+          cp 04-Snake/04\ Snake/snake pkg/usr/local/bin/snake
+          cat > pkg/DEBIAN/control <<CONTROL
+Package: snake-game
+Version: 1.0
+Section: games
+Priority: optional
+Architecture: amd64
+Maintainer: Your Name <youremail@example.com>
+Description: Simple snake game packaged for lab
+CONTROL
+          dpkg-deb --build pkg snake-game.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: snake-game.deb
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install clang
+        run: choco install llvm -y
+      - name: Build
+        run: |
+          cd 04-Snake/04 Snake
+          clang -o snake.exe snake.c
+      - name: Package msi (WiX)
+        run: |
+          choco install wixtoolset -y
+          cd 04-Snake/04 Snake
+          echo ^<?xml version="1.0" encoding="UTF-8"?^> > snake.wxs
+          echo ^<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"^> >> snake.wxs
+          echo   ^<Product Id="*" Name="SnakeGame" Language="1033" Version="1.0.0.0" Manufacturer="Your Name" UpgradeCode="PUT-GUID-HERE"^> >> snake.wxs
+          echo     ^<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" /^> >> snake.wxs
+          echo     ^<Directory Id="TARGETDIR" Name="SourceDir"^> >> snake.wxs
+          echo       ^<Directory Id="ProgramFilesFolder"^> >> snake.wxs
+          echo         ^<Directory Id="INSTALLFOLDER" Name="SnakeGame"^> >> snake.wxs
+          echo           ^<Component Id="MainExecutable" Guid="PUT-GUID-HERE"^> >> snake.wxs
+          echo             ^<File Id="SnakeExe" Source="snake.exe" KeyPath="yes" /^> >> snake.wxs
+          echo           ^</Component^> >> snake.wxs
+          echo         ^</Directory^> >> snake.wxs
+          echo       ^</Directory^> >> snake.wxs
+          echo     ^</Directory^> >> snake.wxs
+          echo     ^<Feature Id="DefaultFeature" Level="1"^> >> snake.wxs
+          echo       ^<ComponentRef Id="MainExecutable" /^> >> snake.wxs
+          echo     ^</Feature^> >> snake.wxs
+          echo   ^</Product^> >> snake.wxs
+          echo ^</Wix^> >> snake.wxs
+          candle snake.wxs
+          light snake.wixobj -o snake.msi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msi-package
+          path: 04-Snake/04 Snake/snake.msi
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: brew install llvm make
+      - name: Build
+        run: |
+          cd 04-Snake/04\ Snake
+          clang -o snake snake.c
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-binary
+          path: 04-Snake/04 Snake/snake
