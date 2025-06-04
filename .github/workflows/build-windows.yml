@@ -19,7 +19,12 @@ jobs:
           choco install cmake
           choco install sfml
 
-      - name: Configure CMake
+      - name: Download and Install SFML
+        run: |
+          Invoke-WebRequest -Uri "https://www.sfml-dev.org/files/SFML-2.5.1-windows-vc15.zip" -OutFile "SFML.zip"
+          Expand-Archive -Path "SFML.zip" -DestinationPath "C:\SFML"
+
+      - name: Configure CMake with SFML
         run: |
           mkdir build
           cd build
