@@ -6,12 +6,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 # Specify the source files
 set(SOURCES
-    src/main.cpp
-    src/game.cpp
+    "04 Snake/main.cpp"
+    "04 Snake/game.cpp"
 )
 
 # Create the executable
 add_executable(SnakeGame ${SOURCES})
 
 # Include directories
-target_include_directories(SnakeGame PRIVATE src)
+include_directories("04 Snake")
