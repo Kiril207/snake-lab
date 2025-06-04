@@ -37,6 +37,14 @@ jobs:
           cmake ..
           make
 
+      - name: Verify Build Output
+        run: |
+          ls build
+          if [ ! -f build/snake-game ]; then
+            echo "Error: Executable not found!"
+            exit 1
+          fi
+
       - name: Package application
         run: |
           mkdir -p package
@@ -51,7 +59,7 @@ jobs:
           echo "Section: games" >> package/DEBIAN/control
           echo "Priority: optional" >> package/DEBIAN/control
           echo "Architecture: amd64" >> package/DEBIAN/control
-          echo "Maintainer: Your Name <your.email@example.com>" >> package/DEBIAN/control
+          echo "Maintainer: kirill <kirya.sherstyuk.05@mail.ru>" >> package/DEBIAN/control
           echo "Description: Snake game" >> package/DEBIAN/control
           mkdir -p package/usr/local/bin
           cp build/snake-game package/usr/local/bin/
@@ -91,7 +99,7 @@ jobs:
           candle.exe -dSourceDir=build -o snake-game.wixobj snake-game.wxs
           light.exe -out snake-game.msi snake-game.wixobj
 
-      - name: Upload MSI
+      - name: Fix Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: snake-game-windows
