@@ -1,0 +1,62 @@
+name: Build Windows
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v1
+      with:
+        cmake-version: '3.21.2'
+
+    - name: Install dependencies
+      run: |
+        choco install mingw
+        choco install cmake
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -G "MinGW Makefiles"
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
+
+    - name: Package
+      run: |
+        cd build
+        cpack -G NSIS
+
+    - name: Upload MSI
+      uses: actions/upload-artifact@v2
+      with:
+        name: snake-game-windows
+        path: build/*.msi
+
+    - name: Zip application
+      run: |
+        cd build
+        mkdir -p package
+        cp -r Release/* package/
+        powershell Compress-Archive -Path package/* -DestinationPath snake-game.zip
+
+    - name: Upload ZIP
+      uses: actions/upload-artifact@v2
+      with:
+        name: snake-game-windows-zip
+        path: build/snake-game.zip

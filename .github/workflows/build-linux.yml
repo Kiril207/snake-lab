@@ -1,0 +1,36 @@
+name: Build Linux
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Clang
+        run: sudo apt-get install -y clang
+
+      - name: Install dependencies
+        run: sudo apt-get install -y cmake g++ 
+
+      - name: Build with CMake
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+
+      - name: Package application
+        run: |
+          mkdir -p package
+          cp -r build/* package/
+          tar -czf snake-game.tar.gz -C package .
