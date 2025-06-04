@@ -12,6 +12,9 @@ set(SOURCES
 # Create the executable
 add_executable(SnakeGame ${SOURCES})
 
+# Rename output executable
+set_target_properties(SnakeGame PROPERTIES OUTPUT_NAME "snake-game")
+
 # Include directories
 include_directories("04 Snake")
 
