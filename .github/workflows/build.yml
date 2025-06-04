@@ -105,11 +105,17 @@ jobs:
             exit 1
           }
 
-      - name: Upload MSI
-        uses: actions/upload-artifact@v3
+      - name: Cache MSI
+        uses: actions/cache@v3
         with:
-          name: snake-game-windows
           path: build/*.msi
+          key: ${{ runner.os }}-snake-game-msi
+
+      - name: Cache ZIP
+        uses: actions/cache@v3
+        with:
+          path: build/snake-game.zip
+          key: ${{ runner.os }}-snake-game-zip
 
       - name: Zip application
         run: |
