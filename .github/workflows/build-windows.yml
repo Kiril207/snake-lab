@@ -60,3 +60,9 @@ jobs:
       with:
         name: snake-game-windows-zip
         path: build/snake-game.zip
+
+    - name: Create MSI package
+      run: |
+        choco install -y wix
+        candle.exe -dSourceDir=build -o snake-game.wixobj snake-game.wxs
+        light.exe -out snake-game.msi snake-game.wixobj
