@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 # Specify the source files
 set(SOURCES
     "04 Snake/main.cpp"
-    "04 Snake/game.cpp"
 )
 
 # Create the executable
@@ -15,3 +14,6 @@ add_executable(SnakeGame ${SOURCES})
 
 # Include directories
 include_directories("04 Snake")
+
+# Add images directory
+file(COPY "04 Snake/images" DESTINATION "${CMAKE_BINARY_DIR}")
