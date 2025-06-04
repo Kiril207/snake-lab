@@ -1,0 +1,106 @@
+name: Build and Package
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - created
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Clang
+        run: sudo apt-get install -y clang
+
+      - name: Install dependencies
+        run: sudo apt-get install -y cmake g++ 
+
+      - name: Build with CMake
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+
+      - name: Package application
+        run: |
+          mkdir -p package
+          cp -r build/* package/
+          tar -czf snake-game.tar.gz -C package .
+
+      - name: Create DEB package
+        run: |
+          mkdir -p package/DEBIAN
+          echo "Package: snake-game" > package/DEBIAN/control
+          echo "Version: 1.0" >> package/DEBIAN/control
+          echo "Section: games" >> package/DEBIAN/control
+          echo "Priority: optional" >> package/DEBIAN/control
+          echo "Architecture: amd64" >> package/DEBIAN/control
+          echo "Maintainer: Your Name <your.email@example.com>" >> package/DEBIAN/control
+          echo "Description: Snake game" >> package/DEBIAN/control
+          mkdir -p package/usr/local/bin
+          cp build/snake-game package/usr/local/bin/
+          dpkg-deb --build package snake-game.deb
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v1
+        with:
+          cmake-version: '3.21.2'
+
+      - name: Install dependencies
+        run: |
+          choco install mingw
+          choco install cmake
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "MinGW Makefiles"
+
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Create MSI package
+        run: |
+          choco install -y wix
+          candle.exe -dSourceDir=build -o snake-game.wixobj snake-game.wxs
+          light.exe -out snake-game.msi snake-game.wixobj
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v2
+        with:
+          name: snake-game-windows
+          path: build/*.msi
+
+      - name: Zip application
+        run: |
+          cd build
+          mkdir -p package
+          cp -r Release/* package/
+          powershell Compress-Archive -Path package/* -DestinationPath snake-game.zip
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v2
+        with:
+          name: snake-game-windows-zip
+          path: build/snake-game.zip
