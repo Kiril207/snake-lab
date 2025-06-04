@@ -58,8 +58,14 @@ jobs:
           mkdir -p release
           cp build/*.msi release/
 
-      - name: Upload MSI
-        uses: actions/upload-artifact@v2
+      - name: Cache MSI
+        uses: actions/cache@v3
         with:
-          name: snake-game-windows
           path: release/*.msi
+          key: ${{ runner.os }}-snake-game-msi
+
+      - name: Cache ZIP
+        uses: actions/cache@v3
+        with:
+          path: release/snake-game.zip
+          key: ${{ runner.os }}-snake-game-zip
